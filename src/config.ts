@@ -1,10 +1,14 @@
 import { cosmiconfig } from "cosmiconfig";
+import { z } from "zod";
 
-export interface TospudoConfig {
-  ignore?: string[];
-  max?: number;
-  maxLength?: number;
-}
+export const ConfigSchema = z.object({
+  ignore: z.array(z.string()).optional(),
+  max: z.number().int().positive().optional(),
+  maxLength: z.number().int().positive().optional(),
+  sectionEmojis: z.boolean().optional(),
+});
+
+export type TospudoConfig = z.infer<typeof ConfigSchema>;
 
 const explorer = cosmiconfig("tospudo", {
   searchPlaces: [
@@ -12,18 +16,15 @@ const explorer = cosmiconfig("tospudo", {
     "tospudo.config.json",
     "tospudo.config.yaml",
     "tospudo.config.yml",
-    "tospudo.config.ts",
   ],
-  loaders: {
-    ".ts": async (filepath: string) => {
-      const mod = await import(filepath);
-      return mod.default ?? mod;
-    },
-  },
 });
 
 export async function loadConfig(): Promise<TospudoConfig | null> {
   const result = await explorer.search();
   if (!result || result.isEmpty) return null;
-  return result.config as TospudoConfig;
+  const parsed = ConfigSchema.safeParse(result.config);
+  if (!parsed.success) {
+    throw new Error(`Invalid tospudo config: ${parsed.error.message}`);
+  }
+  return parsed.data;
 }

@@ -1,13 +1,14 @@
 {
   "name": "tospudo",
   "version": "1.0.0",
-  "description": "Tool to manage TODO comments in codebase so they don't get forgotten.",
+  "description": "A tool to manage TODOs in your project.",
   "type": "module",
   "bin": {
     "tospudo": "./src/cli.ts"
   },
   "files": [
-    "src"
+    "src",
+    "schema.json"
   ],
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -27,11 +28,13 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@clack/prompts": "1.2.0",
     "cac": "7.0.0",
     "cosmiconfig": "9.0.1",
     "fast-glob": "3.3.3",
     "ignore": "7.0.5",
-    "picocolors": "1.1.1"
+    "picocolors": "1.1.1",
+    "zod": "4.3.6"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.10",
