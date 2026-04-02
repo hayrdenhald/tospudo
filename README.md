@@ -55,6 +55,7 @@ export default {
 ```
 
 **Options:**
+
 - `ignore` — additional glob patterns to exclude from scanning
 - `max` — maximum number of TODOs allowed before failing
 
@@ -111,3 +112,12 @@ pnpm add -D /path/to/tospudo/tospudo-1.0.0.tgz
 ```
 
 This is the most accurate way to verify what you're actually shipping. Run it as a final sanity check before every publish.
+
+##
+
+<br>
+<br>
+<br>
+<div align="center">
+  <img src="logo.svg" width="200px">
+</div>
