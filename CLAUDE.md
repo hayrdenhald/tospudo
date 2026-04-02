@@ -1,0 +1,4 @@
+- use `pnpm` for all package management and running scripts
+- this project is published as an npm package (intended as a dev dependency in users' projects)
+- add dependencies should be pinned to an exact version
+- check scripts in `package.json` to verify any changes
