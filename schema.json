@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TospudoConfig",
+  "description": "Configuration for tospudo.",
+  "type": "object",
+  "additionalProperties": true,
+  "allowedProperties": ["$schema"],
+  "properties": {
+    "ignore": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Glob patterns to exclude from scanning, in addition to .gitignore rules."
+    },
+    "max": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Exit with code 1 if TODO count exceeds this threshold. Useful in CI. Can also be set with the --max CLI flag."
+    },
+    "maxLength": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Truncate TODO text in scan output to this many characters. Defaults to 80. Does not affect TODO.md content."
+    },
+    "sectionEmojis": {
+      "type": "boolean",
+      "description": "Show an emoji prefix in TODO.md section headings (e.g. \"🐛 fix\"). Defaults to true."
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # 🍠 Tospudo
 
-Scans your codebase for `TODO` and `FIXME` comments so they don't get forgotten.
+A tool to manage TODOs in your project.
 
 ## Installation
 
@@ -8,23 +8,25 @@ Scans your codebase for `TODO` and `FIXME` comments so they don't get forgotten.
 pnpm add -D tospudo
 ```
 
-## Usage
-
-```bash
-pnpm tospudo
-```
-
-Or add it to your `package.json` scripts:
+Add it to your `package.json` scripts:
 
 ```json
 {
   "scripts": {
-    "todos": "tospudo"
+    "todo": "tospudo"
   }
 }
 ```
 
-Tospudo scans all files from the current directory, respecting `.gitignore` and ignoring `node_modules/`. It reports every `TODO` and `FIXME` comment found in code, plus unchecked items (`- [ ]`) in `TODO.md` files.
+## Usage
+
+```bash
+pnpm todo
+```
+
+Tospudo scans all files from the current directory, respecting `.gitignore`.
+
+It reports every `TODO` and `FIXME` comment found in code, plus unchecked items (`- [ ]`) in a `TODO.md` file.
 
 ## CLI options
 
@@ -34,7 +36,19 @@ Tospudo scans all files from the current directory, respecting `.gitignore` and 
 
 ## Configuration
 
-Configuration is optional. Add a `tospudo` key to `package.json`:
+Configuration is optional. Use a `tospudo.config.json` file:
+
+```json
+{
+  "$schema": "./node_modules/tospudo/schema.json",
+  "ignore": ["src/generated/**"],
+  "max": 20
+}
+```
+
+The `$schema` field enables autocomplete and inline documentation for all options in VS Code and other editors that support JSON Schema.
+
+Or add a `tospudo` key to `package.json`:
 
 ```json
 {
@@ -45,19 +59,12 @@ Configuration is optional. Add a `tospudo` key to `package.json`:
 }
 ```
 
-Or use a `tospudo.config.ts` / `.json` / `.yaml` file:
-
-```ts
-export default {
-  ignore: ["src/generated/**"],
-  max: 20,
-};
-```
-
 **Options:**
 
-- `ignore` — additional glob patterns to exclude from scanning
-- `max` — maximum number of TODOs allowed before failing
+- `ignore` — glob patterns to exclude from scanning, in addition to `.gitignore` rules
+- `max` — exit with code 1 if TODO count exceeds this threshold; useful in CI. Can also be set with the `--max` CLI flag
+- `maxLength` — truncate TODO text in scan output to this many characters (default: `80`); does not affect `TODO.md` content
+- `sectionEmojis` — show an emoji prefix in `TODO.md` section headings, e.g. `🐛 fix` (default: `true`)
 
 ---
 
