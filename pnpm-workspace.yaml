@@ -13,9 +13,14 @@ trustPolicy: "no-downgrade"
 # Store integrity: verify package contents on every read from the store
 verifyStoreIntegrity: true
 
-# Build script control: only allow build scripts from explicitly listed packages
-# - @biomejs/biome ships a native binary
-# - esbuild is pulled in transitively by vitest
-onlyBuiltDependencies:
-  - "@biomejs/biome"
-  - esbuild
+# A map of package matchers to explicitly allow (true) or disallow (false) script execution.
+#
+# Default behavior: Packages not listed here are disallowed. With strictDepBuilds enabled,
+# unlisted packages cause an error instead of a warning.
+allowBuilds:
+  "@biomejs/biome": true
+  esbuild: true
+
+# Upgrade unlisted-package build violations from warnings to errors.
+# Packages not in allowBuilds will cause installation to fail rather than just warn.
+strictDepBuilds: true
