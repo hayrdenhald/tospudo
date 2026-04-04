@@ -1,0 +1,21 @@
+# Supply chain: require packages to be at least 3 days old before installation
+# Reduces risk from malicious packages published and pulled within the same day
+minimumReleaseAge: "3 days"
+
+# Block transitive deps from using exotic sources (git URLs, tarballs)
+# Ensures all deps come from the npm registry with verifiable integrity
+blockExoticSubdeps: true
+
+# Trust policy: prevent installing versions with downgraded trust
+# (e.g. packages that lost provenance attestations)
+trustPolicy: "no-downgrade"
+
+# Store integrity: verify package contents on every read from the store
+verifyStoreIntegrity: true
+
+# Build script control: only allow build scripts from explicitly listed packages
+# - @biomejs/biome ships a native binary
+# - esbuild is pulled in transitively by vitest
+onlyBuiltDependencies:
+  - "@biomejs/biome"
+  - esbuild
