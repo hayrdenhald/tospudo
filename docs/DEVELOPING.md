@@ -51,3 +51,5 @@ pnpm add -D /path/to/tospudo/tospudo-1.0.0.tgz
 ```
 
 This is the most accurate way to verify what you're actually shipping. Run it as a final sanity check before every publish.
+
+Note: always run `pnpm build` before `pnpm pack`. The `prepublishOnly` script only runs automatically for `pnpm publish`, not for `pnpm pack`.
