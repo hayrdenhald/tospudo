@@ -8,7 +8,7 @@ export const ConfigSchema = z.object({
   sectionEmojis: z.boolean().optional(),
 });
 
-export type TospudoConfig = z.infer<typeof ConfigSchema>;
+type TospudoConfig = z.infer<typeof ConfigSchema>;
 
 const explorer = cosmiconfig("tospudo", {
   searchPlaces: [
