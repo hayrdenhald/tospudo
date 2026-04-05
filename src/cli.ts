@@ -85,7 +85,8 @@ async function runList(): Promise<void> {
 function parseSectionPrefix(text: string): { section: Section; todoText: string } | null {
   const match = /^(\w+):\s*(.+)$/.exec(text);
   if (!match) return null;
-  const candidate = match[1];
+  const raw = match[1];
+  const candidate = raw === "feat" ? "feature" : raw;
   if (!(SECTIONS as readonly string[]).includes(candidate)) return null;
   return { section: candidate as Section, todoText: match[2].trim() };
 }

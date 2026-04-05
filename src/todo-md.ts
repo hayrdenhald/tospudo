@@ -19,7 +19,7 @@ export type Section = (typeof SECTIONS)[number];
 const SECTION_EMOJIS: Record<Section, string> = {
   fix: "🐛",
   feature: "✨",
-  refactor: "♻️",
+  refactor: "🔄",
   test: "🧪",
   chore: "🧹",
   ci: "🚀",

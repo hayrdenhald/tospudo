@@ -3,4 +3,4 @@ dist/
 .DS_Store
 *.log
 .env
-tospudo-1.0.0.tgz
+tospudo-*.tgz
