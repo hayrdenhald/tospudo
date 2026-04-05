@@ -14,12 +14,4 @@ describe("package.json publish fields point to dist/", () => {
   it("files includes dist", () => {
     expect(pkg.files).toContain("dist");
   });
-
-  it("exports entries point into dist/", () => {
-    for (const condition of Object.values(pkg.exports as Record<string, Record<string, string>>)) {
-      for (const path of Object.values(condition)) {
-        expect(path).toMatch(/^\.\/dist\//);
-      }
-    }
-  });
 });

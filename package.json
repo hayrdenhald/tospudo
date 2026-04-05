@@ -10,12 +10,7 @@
     "dist",
     "schema.json"
   ],
-  "exports": {
-    ".": {
-      "types": "./dist/cli.d.ts",
-      "import": "./dist/cli.js"
-    }
-  },
+
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "build": "tsc --project tsconfig.build.json",
@@ -31,6 +26,10 @@
   "keywords": [
     "todo"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hayrdenhald/tospudo.git"
+  },
   "author": "hayrdenhald",
   "license": "ISC",
   "packageManager": "pnpm@10.33.0",
