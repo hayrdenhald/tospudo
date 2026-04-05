@@ -13,7 +13,8 @@
 
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "build": "tsc --project tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "build": "pnpm run clean && tsc --project tsconfig.build.json",
     "prepublishOnly": "pnpm run build",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
