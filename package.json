@@ -1,6 +1,6 @@
 {
   "name": "tospudo",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A tool to manage TODOs in your project.",
   "type": "module",
   "bin": {
