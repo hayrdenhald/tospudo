@@ -1,26 +1,8 @@
-# Supply chain: require packages to be at least 3 days old before installation
-# Reduces risk from malicious packages published and pulled within the same day
-minimumReleaseAge: "3 days"
-
-# Block transitive deps from using exotic sources (git URLs, tarballs)
-# Ensures all deps come from the npm registry with verifiable integrity
+minimumReleaseAge: 4320
 blockExoticSubdeps: true
-
-# Trust policy: prevent installing versions with downgraded trust
-# (e.g. packages that lost provenance attestations)
 trustPolicy: "no-downgrade"
-
-# Store integrity: verify package contents on every read from the store
 verifyStoreIntegrity: true
-
-# A map of package matchers to explicitly allow (true) or disallow (false) script execution.
-#
-# Default behavior: Packages not listed here are disallowed. With strictDepBuilds enabled,
-# unlisted packages cause an error instead of a warning.
+strictDepBuilds: true
 allowBuilds:
   "@biomejs/biome": true
   esbuild: true
-
-# Upgrade unlisted-package build violations from warnings to errors.
-# Packages not in allowBuilds will cause installation to fail rather than just warn.
-strictDepBuilds: true
