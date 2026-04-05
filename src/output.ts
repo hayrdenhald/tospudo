@@ -1,5 +1,5 @@
 import pc from "picocolors";
-import type { TodoItem } from "./parser.ts";
+import type { TodoItem } from "./parser.js";
 
 const DEFAULT_MAX_LENGTH = 80;
 

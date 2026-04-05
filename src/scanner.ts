@@ -3,8 +3,8 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import fg from "fast-glob";
 import ignore from "ignore";
-import type { TodoItem } from "./parser.ts";
-import { parseFileForTodos, parseTodoMd } from "./parser.ts";
+import type { TodoItem } from "./parser.js";
+import { parseFileForTodos, parseTodoMd } from "./parser.js";
 
 async function loadGitignore(cwd: string): Promise<ReturnType<typeof ignore>> {
   const ig = ignore();

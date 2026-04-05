@@ -4,14 +4,22 @@
   "description": "A tool to manage TODOs in your project.",
   "type": "module",
   "bin": {
-    "tospudo": "./src/cli.ts"
+    "tospudo": "./dist/cli.js"
   },
   "files": [
-    "src",
+    "dist",
     "schema.json"
   ],
+  "exports": {
+    ".": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    }
+  },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
+    "build": "tsc --project tsconfig.build.json",
+    "prepublishOnly": "pnpm run build",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "format": "biome format --write .",
@@ -20,7 +28,9 @@
     "test:unit": "vitest run tests/unit",
     "test:meta": "vitest run tests/meta"
   },
-  "keywords": [],
+  "keywords": [
+    "todo"
+  ],
   "author": "hayrdenhald",
   "license": "ISC",
   "packageManager": "pnpm@10.33.0",

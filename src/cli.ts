@@ -5,9 +5,10 @@ import { join } from "node:path";
 import * as p from "@clack/prompts";
 import cac from "cac";
 import pc from "picocolors";
-import { loadConfig } from "./config.ts";
-import { printResults } from "./output.ts";
-import { scanFiles } from "./scanner.ts";
+import pkg from "../package.json" with { type: "json" };
+import { loadConfig } from "./config.js";
+import { printResults } from "./output.js";
+import { scanFiles } from "./scanner.js";
 import {
   ANY_ITEM_REGEX,
   appendTodo,
@@ -24,7 +25,7 @@ import {
   SECTIONS,
   type Section,
   uncompleteLine,
-} from "./todo-md.ts";
+} from "./todo-md.js";
 
 const TODO_PATH = join(process.cwd(), "TODO.md");
 
@@ -222,5 +223,5 @@ cli.command("", "Interactive menu").action(async () => {
 });
 
 cli.help();
-cli.version("1.0.0");
+cli.version(pkg.version);
 cli.parse();
