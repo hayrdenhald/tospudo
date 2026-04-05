@@ -1,6 +1,6 @@
 {
   "name": "tospudo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A tool to manage TODOs in your project.",
   "type": "module",
   "bin": {
@@ -10,7 +10,6 @@
     "dist",
     "schema.json"
   ],
-
   "scripts": {
     "clean": "rm -rf dist",
     "build": "pnpm run clean && tsc --project tsconfig.build.json",
