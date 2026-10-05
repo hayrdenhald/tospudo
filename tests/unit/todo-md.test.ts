@@ -193,6 +193,10 @@ describe("appendTodo with section", () => {
     expect(result).toContain("## 🧪 test\n\n- [ ] Add unit tests");
   });
 
+  it("creates a new file without a leading blank line", () => {
+    expect(appendTodo("", "x", "feature")).toBe("## ✨ feature\n\n- [ ] x\n");
+  });
+
   it("creates a new section without emoji when emoji=false", () => {
     const result = appendTodo(SECTIONED, "Add unit tests", "test", false);
     expect(result).toContain("## test\n\n- [ ] Add unit tests");
