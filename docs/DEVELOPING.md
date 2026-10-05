@@ -16,26 +16,20 @@ This best mimics how real users install the package — the binary is available 
 
 ### 2. `pnpm link`
 
-Link your local package globally, then link it into any project you want to test with:
+Link your local package into the project you want to test with:
 
 ```bash
-# In the tospudo directory
-pnpm link --global
-
 # In your test project
-pnpm link tospudo
+pnpm link /<path-to>/tospudo
 ```
 
-Changes to tospudo are reflected immediately — no reinstall needed. Note that this makes the binary available globally, not just in the test project.
+Changes to tospudo are reflected after running `pnpm run build` in the tospudo directory, with no reinstall needed in the test project. The binary is available via `pnpm tospudo`, scoped to the test project. Note that this adds a `link:` entry to the test project's `package.json`.
 
-To unlink when you're done:
+To unlink when you're done (this also removes the `package.json` entry):
 
 ```bash
 # In your test project
 pnpm unlink tospudo
-
-# In the tospudo directory
-pnpm uninstall --global tospudo
 ```
 
 ### 3. `pnpm pack` (recommended before publishing)
