@@ -5,4 +5,6 @@ verifyStoreIntegrity: true
 strictDepBuilds: true
 allowBuilds:
   "@biomejs/biome": true
-  esbuild: true
+auditConfig:
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm

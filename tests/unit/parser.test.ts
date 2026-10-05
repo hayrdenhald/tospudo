@@ -177,3 +177,59 @@ describe("parseTodoMd", () => {
     expect(result).toHaveLength(0);
   });
 });
+
+describe("parseFileForTodos edge cases", () => {
+  const texts = (content: string) =>
+    parseFileForTodos(content, NON_EXISTENT_TEST_FILE).map((t) => t.text);
+
+  test("takes the text from the comment, not from code containing the keyword", () => {
+    expect(texts("const todoList = []; // TODO: fix")).toEqual(["TODO: fix"]);
+  });
+
+  test("ignores code and other comments after an inline block comment", () => {
+    expect(texts("/* TODO: x */ run(); // other")).toEqual(["TODO: x"]);
+  });
+
+  test("does not treat /* inside a string as a block comment", () => {
+    expect(texts('fg("**/*", {});\nconst o = { todo: 1 };')).toEqual([]);
+  });
+
+  test("does not treat // inside a string as a line comment", () => {
+    expect(texts('const url = "https://x.io/todo:1";')).toEqual([]);
+  });
+
+  test("handles escaped quotes inside strings", () => {
+    expect(texts('const s = "a\\" // b"; // TODO: z')).toEqual(["TODO: z"]);
+  });
+
+  test("does not treat apostrophes in prose as strings", () => {
+    expect(texts(`<a href="http://x">Don't</a> <!-- TODO: y -->`)).toEqual(["TODO: y"]);
+  });
+
+  test("ignores an unclosed quote", () => {
+    expect(texts("fn f(x: &'a str) {} // TODO: lifetimes")).toEqual(["TODO: lifetimes"]);
+  });
+
+  test("requires a word boundary before the keyword", () => {
+    expect(texts("// see mastodon: config")).toEqual([]);
+  });
+
+  test("handles CRLF line endings", () => {
+    const result = parseFileForTodos("const a = 1;\r\n// TODO: crlf\r\n", NON_EXISTENT_TEST_FILE);
+    expect(result).toHaveLength(1);
+    expect(result[0].text).toBe("TODO: crlf");
+    expect(result[0].line).toBe(2);
+  });
+});
+
+describe("parseTodoMd edge cases", () => {
+  test("handles CRLF line endings", () => {
+    const result = parseTodoMd("- [ ] one\r\n- [ ] two\r\n", "TODO.md");
+    expect(result.map((t) => t.text)).toEqual(["one", "two"]);
+  });
+
+  test("finds indented items", () => {
+    const result = parseTodoMd("- [ ] parent\n  - [ ] child", "TODO.md");
+    expect(result.map((t) => t.text)).toEqual(["parent", "child"]);
+  });
+});

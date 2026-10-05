@@ -5,11 +5,13 @@ import {
   deleteLine,
   hasSections,
   migrateToSections,
+  normalizeEol,
   parseAllItems,
   parseAllItemsWithStatus,
   parseCompletedLines,
   parseLines,
   pruneEmptySections,
+  restoreEol,
   uncompleteLine,
 } from "@/todo-md.ts";
 
@@ -288,5 +290,69 @@ describe("pruneEmptySections", () => {
   it("is a no-op on flat content without section headers", () => {
     const result = pruneEmptySections(SAMPLE);
     expect(result).toBe(SAMPLE);
+  });
+});
+
+describe("line endings", () => {
+  const CRLF = "## fix\r\n\r\n- [ ] one\r\n- [x] two\r\n";
+
+  it("normalizeEol converts CRLF so items are parsed", () => {
+    const { content, eol } = normalizeEol(CRLF);
+    expect(eol).toBe("\r\n");
+    expect(parseLines(content)).toEqual([{ index: 2, text: "one" }]);
+    expect(parseCompletedLines(content)).toEqual([{ index: 3, text: "two" }]);
+    expect(parseAllItems(content)).toHaveLength(2);
+  });
+
+  it("detects LF content", () => {
+    expect(normalizeEol("- [ ] a\n").eol).toBe("\n");
+  });
+
+  it("restoreEol round trips", () => {
+    const { content, eol } = normalizeEol(CRLF);
+    expect(restoreEol(content, eol)).toBe(CRLF);
+  });
+
+  it("appendTodo does not duplicate a section in normalized CRLF content", () => {
+    const { content } = normalizeEol("## 🐛 fix\r\n\r\n- [ ] a\r\n");
+    const result = appendTodo(content, "b", "fix");
+    expect(result.match(/## 🐛 fix/g)).toHaveLength(1);
+    expect(result).toContain("- [ ] a\n- [ ] b");
+  });
+});
+
+describe("item formats", () => {
+  it("parses indented items and other bullets", () => {
+    expect(parseLines("- [ ] a\n  - [ ] sub\n* [ ] star\n+ [ ] plus")).toEqual([
+      { index: 0, text: "a" },
+      { index: 1, text: "sub" },
+      { index: 2, text: "star" },
+      { index: 3, text: "plus" },
+    ]);
+  });
+
+  it("does not treat malformed checkboxes as items", () => {
+    expect(parseAllItems("- [] a\n- [-] b\n- [~] c")).toEqual([]);
+  });
+
+  it("completeLine keeps indentation and bullet", () => {
+    expect(completeLine("  * [ ] sub", 0)).toBe("  * [x] sub");
+  });
+
+  it("uncompleteLine keeps indentation and bullet", () => {
+    expect(uncompleteLine("  + [X] sub", 0)).toBe("  + [ ] sub");
+  });
+});
+
+describe("section heading matching", () => {
+  it("does not match a heading that only ends with the section name", () => {
+    const result = appendTodo("## hot fix\n\n- [ ] a\n", "b", "fix");
+    expect(result).toContain("## hot fix\n\n- [ ] a\n");
+    expect(result).toContain("## 🐛 fix\n\n- [ ] b\n");
+  });
+
+  it("matches a heading with trailing whitespace", () => {
+    const result = appendTodo("## fix  \n\n- [ ] a\n", "b", "fix");
+    expect(result).toBe("## fix  \n\n- [ ] a\n- [ ] b\n");
   });
 });

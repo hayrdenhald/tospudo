@@ -1,3 +1,5 @@
+import { UNCHECKED_REGEX } from "./todo-md.js";
+
 export interface TodoItem {
   file: string;
   line?: number;
@@ -5,93 +7,100 @@ export interface TodoItem {
   hasMore?: boolean;
 }
 
-const TODO_REGEX = /(?:(?:TODO|FIXME):|^\s*\*?\s*(?:TODO|FIXME)\b)/im;
-const CHECKBOX_REGEX = /^- \[ \] (.+)$/;
+const TODO_REGEX = /(?:\b(?:TODO|FIXME):|^\s*\*?\s*(?:TODO|FIXME)\b)/i;
+const KEYWORD_REGEX = /\b(?:TODO|FIXME)\b/i;
+const QUOTES = new Set(["'", '"', "`"]);
+const WORD_CHAR_REGEX = /\w/;
+
+function findStringEnd(line: string, start: number): number {
+  const quote = line[start];
+  let pos = start + 1;
+  while (pos < line.length) {
+    if (line[pos] === "\\") {
+      pos += 2;
+      continue;
+    }
+    if (line[pos] === quote) return pos + 1;
+    pos++;
+  }
+  return -1;
+}
 
 function extractCommentContent(
   line: string,
   inBlockComment: boolean,
   inHtmlComment: boolean,
-): { commentContent: string; inBlockComment: boolean; inHtmlComment: boolean } {
-  let result = "";
+): { segments: string[]; inBlockComment: boolean; inHtmlComment: boolean } {
+  const segments: string[] = [];
   let pos = 0;
 
   while (pos < line.length) {
     if (inHtmlComment) {
       const close = line.indexOf("-->", pos);
       if (close === -1) {
-        result += line.slice(pos);
+        segments.push(line.slice(pos));
         break;
       }
-      result += line.slice(pos, close);
+      segments.push(line.slice(pos, close));
       inHtmlComment = false;
       pos = close + 3;
     } else if (inBlockComment) {
       const close = line.indexOf("*/", pos);
       if (close === -1) {
-        result += line.slice(pos);
+        segments.push(line.slice(pos));
         break;
       }
-      result += line.slice(pos, close);
+      segments.push(line.slice(pos, close));
       inBlockComment = false;
       pos = close + 2;
+    } else if (QUOTES.has(line[pos]) && !WORD_CHAR_REGEX.test(line[pos - 1] ?? "")) {
+      // NOTE: The scanner also feeds HTML/Markdown prose, so a quote after a word char ("Don't") is an apostrophe.
+      const end = findStringEnd(line, pos);
+      pos = end === -1 ? pos + 1 : end;
+    } else if (line.startsWith("//", pos)) {
+      segments.push(line.slice(pos + 2));
+      break;
+    } else if (line.startsWith("/*", pos)) {
+      inBlockComment = true;
+      pos += 2;
+    } else if (line.startsWith("<!--", pos)) {
+      inHtmlComment = true;
+      pos += 4;
     } else {
-      const slashSlash = line.indexOf("//", pos);
-      const slashStar = line.indexOf("/*", pos);
-      const htmlOpen = line.indexOf("<!--", pos);
-      const candidates = [
-        { idx: slashSlash, type: "line" as const },
-        { idx: slashStar, type: "block" as const },
-        { idx: htmlOpen, type: "html" as const },
-      ]
-        .filter((c) => c.idx !== -1)
-        .sort((a, b) => a.idx - b.idx);
-      const next = candidates[0];
-      if (!next) break;
-      if (next.type === "line") {
-        result += line.slice(next.idx + 2);
-        break;
-      }
-      if (next.type === "block") {
-        inBlockComment = true;
-        pos = next.idx + 2;
-      }
-      if (next.type === "html") {
-        inHtmlComment = true;
-        pos = next.idx + 4;
-      }
+      pos++;
     }
   }
 
-  return { commentContent: result, inBlockComment, inHtmlComment };
+  return { segments, inBlockComment, inHtmlComment };
 }
 
 export function parseFileForTodos(content: string, file: string): TodoItem[] {
-  const lines = content.split("\n");
+  const lines = content.split(/\r?\n/);
   const results: TodoItem[] = [];
   let inBlockComment = false;
   let inHtmlComment = false;
 
   for (let i = 0; i < lines.length; i++) {
     const {
-      commentContent,
+      segments,
       inBlockComment: nextBlock,
       inHtmlComment: nextHtml,
     } = extractCommentContent(lines[i], inBlockComment, inHtmlComment);
     inBlockComment = nextBlock;
     inHtmlComment = nextHtml;
 
-    if (!TODO_REGEX.test(commentContent)) continue;
+    const segment = segments.find((s) => TODO_REGEX.test(s));
+    if (segment === undefined) continue;
 
     // NOTE: Find where the keyword starts to reconstruct "TODO: ..." from the keyword onwards
-    const keywordMatch = /(?:TODO|FIXME)/i.exec(lines[i]);
-    const raw = keywordMatch ? lines[i].slice(keywordMatch.index).trim() : lines[i].trim();
-    const text = raw.replace(/\s*(?:\*\/|-->)\s*$/, "").trim();
+    const keywordIndex = KEYWORD_REGEX.exec(segment)?.index ?? 0;
+    const text = segment.slice(keywordIndex).trim();
 
     const nextLine = lines[i + 1];
     const hasMore =
       nextLine !== undefined &&
-      extractCommentContent(nextLine, inBlockComment, inHtmlComment).commentContent.trim() !== "";
+      extractCommentContent(nextLine, inBlockComment, inHtmlComment).segments.join("").trim() !==
+        "";
 
     results.push({ file, line: i + 1, text, hasMore });
   }
@@ -100,11 +109,11 @@ export function parseFileForTodos(content: string, file: string): TodoItem[] {
 }
 
 export function parseTodoMd(content: string, file: string): TodoItem[] {
-  const lines = content.split("\n");
+  const lines = content.split(/\r?\n/);
   const results: TodoItem[] = [];
 
   for (const line of lines) {
-    const match = CHECKBOX_REGEX.exec(line.trim());
+    const match = UNCHECKED_REGEX.exec(line);
     if (match) {
       results.push({
         file,

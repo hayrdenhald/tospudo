@@ -1,6 +1,18 @@
-const UNCHECKED_REGEX = /^- \[ \] (.+)$/;
-export const CHECKED_REGEX = /^- \[x\] (.+)$/i;
-export const ANY_ITEM_REGEX = /^- \[.?\] (.+)$/;
+export const UNCHECKED_REGEX = /^\s*[-*+] \[ \] (.+)$/;
+export const CHECKED_REGEX = /^\s*[-*+] \[[xX]\] (.+)$/;
+export const ANY_ITEM_REGEX = /^\s*[-*+] \[[ xX]\] (.+)$/;
+
+export type Eol = "\n" | "\r\n";
+
+/** Other functions in this module assume "\n" line endings; pass file content through this first. */
+export function normalizeEol(content: string): { content: string; eol: Eol } {
+  const eol: Eol = content.includes("\r\n") ? "\r\n" : "\n";
+  return { content: content.replace(/\r\n/g, "\n"), eol };
+}
+
+export function restoreEol(content: string, eol: Eol): string {
+  return eol === "\r\n" ? content.replace(/\n/g, "\r\n") : content;
+}
 
 export const SECTIONS = [
   "fix",
@@ -34,7 +46,7 @@ function sectionHeading(section: Section, emoji: boolean): string {
 
 /** Matches a section heading line for a given section name, with or without emoji. */
 function matchesSectionHeading(line: string, section: Section): boolean {
-  return line === `## ${section}` || (line.startsWith(`## `) && line.endsWith(` ${section}`));
+  return new RegExp(`^## (?:[^\\s\\w]+ )?${section}$`).test(line.trimEnd());
 }
 
 export function hasSections(content: string): boolean {
@@ -88,14 +100,14 @@ function assertValidIndex(index: number, length: number): void {
 export function uncompleteLine(content: string, index: number): string {
   const lines = content.split("\n");
   assertValidIndex(index, lines.length);
-  lines[index] = lines[index].replace(/^- \[x\] /i, "- [ ] ");
+  lines[index] = lines[index].replace(/^(\s*[-*+]) \[[xX]\] /, "$1 [ ] ");
   return lines.join("\n");
 }
 
 export function completeLine(content: string, index: number): string {
   const lines = content.split("\n");
   assertValidIndex(index, lines.length);
-  lines[index] = lines[index].replace("- [ ]", "- [x]");
+  lines[index] = lines[index].replace(/^(\s*[-*+]) \[ \] /, "$1 [x] ");
   return lines.join("\n");
 }
 
@@ -158,7 +170,7 @@ export function appendTodo(content: string, text: string, section?: Section, emo
 
   let lastItemIndex = -1;
   for (let i = sectionStartIndex + 1; i < blockEnd; i++) {
-    if (/^- \[/.test(lines[i])) lastItemIndex = i;
+    if (ANY_ITEM_REGEX.test(lines[i])) lastItemIndex = i;
   }
 
   const insertAfter =
