@@ -159,8 +159,8 @@ export function appendTodo(content: string, text: string, section?: Section, emo
 
   if (sectionStartIndex === -1) {
     const trimmed = content.trimEnd();
-    const base = trimmed.length > 0 ? `${trimmed}\n` : "";
-    return `${base}\n${sectionHeading(section, emoji)}\n\n- [ ] ${text}\n`;
+    const base = trimmed.length > 0 ? `${trimmed}\n\n` : "";
+    return `${base}${sectionHeading(section, emoji)}\n\n- [ ] ${text}\n`;
   }
 
   const nextSectionIndex = lines.findIndex(

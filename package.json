@@ -18,9 +18,10 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "knip": "knip",
-    "test": "vitest run",
+    "test": "vitest run tests/unit tests/meta",
     "test:unit": "vitest run tests/unit",
-    "test:meta": "vitest run tests/meta"
+    "test:meta": "vitest run tests/meta",
+    "test:e2e": "pnpm run build && vitest run tests/e2e"
   },
   "keywords": [
     "todo"
