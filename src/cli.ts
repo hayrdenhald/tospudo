@@ -15,13 +15,16 @@ import {
   CHECKED_REGEX,
   completeLine,
   deleteLine,
+  type Eol,
   hasSections,
   migrateToSections,
+  normalizeEol,
   parseAllItems,
   parseAllItemsWithStatus,
   parseCompletedLines,
   parseLines,
   pruneEmptySections,
+  restoreEol,
   SECTIONS,
   type Section,
   uncompleteLine,
@@ -29,8 +32,12 @@ import {
 
 const TODO_PATH = join(process.cwd(), "TODO.md");
 
-function readTodoMd(): Promise<string> {
-  return readFile(TODO_PATH, "utf8");
+async function readTodoMd(): Promise<{ content: string; eol: Eol }> {
+  return normalizeEol(await readFile(TODO_PATH, "utf8"));
+}
+
+function writeTodoMd(content: string, eol: Eol): Promise<void> {
+  return writeFile(TODO_PATH, restoreEol(content, eol), "utf8");
 }
 
 async function runScan(options?: { max?: string }): Promise<void> {
@@ -48,7 +55,7 @@ async function runList(): Promise<void> {
     p.cancel("No TODO.md found in current directory.");
     process.exit(1);
   }
-  const content = await readTodoMd();
+  const { content } = await readTodoMd();
   const items = parseAllItemsWithStatus(content);
   if (items.length === 0) {
     console.log(pc.green("No TODOs found in TODO.md."));
@@ -85,7 +92,7 @@ async function runList(): Promise<void> {
 function parseSectionPrefix(text: string): { section: Section; todoText: string } | null {
   const match = /^(\w+):\s*(.+)$/.exec(text);
   if (!match) return null;
-  const raw = match[1];
+  const raw = match[1].toLowerCase();
   const candidate = raw === "feat" ? "feature" : raw;
   if (!(SECTIONS as readonly string[]).includes(candidate)) return null;
   return { section: candidate as Section, todoText: match[2].trim() };
@@ -94,7 +101,8 @@ function parseSectionPrefix(text: string): { section: Section; todoText: string 
 async function runAdd(text?: string): Promise<void> {
   const config = await loadConfig();
   const emoji = config?.sectionEmojis !== false;
-  let existing = existsSync(TODO_PATH) ? await readTodoMd() : "";
+  const todoMd = existsSync(TODO_PATH) ? await readTodoMd() : normalizeEol("");
+  let existing = todoMd.content;
   if (existing.length > 0 && !hasSections(existing)) {
     existing = migrateToSections(existing, emoji);
   }
@@ -121,7 +129,7 @@ async function runAdd(text?: string): Promise<void> {
     if (p.isCancel(selected)) process.exit(0);
     section = selected as Section;
   }
-  await writeFile(TODO_PATH, appendTodo(existing, todoText, section, emoji), "utf8");
+  await writeTodoMd(appendTodo(existing, todoText, section, emoji), todoMd.eol);
   p.outro(`Added: ${todoText}`);
 }
 
@@ -130,7 +138,7 @@ async function runCheck(): Promise<void> {
     p.cancel("No TODO.md found in current directory.");
     process.exit(1);
   }
-  const content = await readTodoMd();
+  const { content, eol } = await readTodoMd();
   const items = parseLines(content);
   if (items.length === 0) {
     p.cancel("No unchecked TODOs found.");
@@ -141,7 +149,7 @@ async function runCheck(): Promise<void> {
     options: items.map((item) => ({ label: item.text, value: item.index })),
   });
   if (p.isCancel(selected)) process.exit(0);
-  await writeFile(TODO_PATH, completeLine(content, selected as number), "utf8");
+  await writeTodoMd(completeLine(content, selected as number), eol);
   p.outro(`Checked: ${items.find((i) => i.index === selected)?.text}`);
 }
 
@@ -150,7 +158,7 @@ async function runUncheck(): Promise<void> {
     p.cancel("No TODO.md found in current directory.");
     process.exit(1);
   }
-  const content = await readTodoMd();
+  const { content, eol } = await readTodoMd();
   const items = parseCompletedLines(content);
   if (items.length === 0) {
     p.cancel("No checked TODOs found.");
@@ -161,7 +169,7 @@ async function runUncheck(): Promise<void> {
     options: items.map((item) => ({ label: item.text, value: item.index })),
   });
   if (p.isCancel(selected)) process.exit(0);
-  await writeFile(TODO_PATH, uncompleteLine(content, selected as number), "utf8");
+  await writeTodoMd(uncompleteLine(content, selected as number), eol);
   p.outro(`Unchecked: ${items.find((i) => i.index === selected)?.text}`);
 }
 
@@ -170,7 +178,7 @@ async function runRemove(): Promise<void> {
     p.cancel("No TODO.md found in current directory.");
     process.exit(1);
   }
-  const content = await readTodoMd();
+  const { content, eol } = await readTodoMd();
   const items = parseAllItems(content);
   if (items.length === 0) {
     p.cancel("No TODOs found.");
@@ -181,7 +189,7 @@ async function runRemove(): Promise<void> {
     options: items.map((item) => ({ label: item.text, value: item.index })),
   });
   if (p.isCancel(selected)) process.exit(0);
-  await writeFile(TODO_PATH, pruneEmptySections(deleteLine(content, selected as number)), "utf8");
+  await writeTodoMd(pruneEmptySections(deleteLine(content, selected as number)), eol);
   p.outro(`Removed: ${items.find((i) => i.index === selected)?.text}`);
 }
 

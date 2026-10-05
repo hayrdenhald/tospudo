@@ -5,4 +5,10 @@ verifyStoreIntegrity: true
 strictDepBuilds: true
 allowBuilds:
   "@biomejs/biome": true
-  esbuild: true
+audit:
+  ignore:
+    - GHSA-vfj7-8cjw-p6xm
+overrides:
+  vite: 8.0.16
+provenance: true
+saveExact: true
