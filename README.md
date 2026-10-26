@@ -60,7 +60,6 @@ Or add a `tospudo` key to `package.json`:
 ```
 
 **Options:**
-
 - `ignore` — glob patterns to exclude from scanning, in addition to `.gitignore` rules
 - `max` — exit with code 1 if TODO count exceeds this threshold; useful in CI. Can also be set with the `--max` CLI flag
 - `maxLength` — truncate TODO text in scan output to this many characters (default: `80`); does not affect `TODO.md` content
