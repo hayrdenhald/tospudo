@@ -4,10 +4,12 @@
 
 1. Make sure all work is merged and you are on `main`
 2. Bump the version and create a git tag:
+
    ```bash
    pnpm version patch   # or minor / major
    git push --follow-tags
    ```
+
    `--follow-tags` pushes both the commit and the tag created by `pnpm version`. Without it the tag stays local and GitHub won't see it.
 3. Create a new release on GitHub pointing to the tag — the publish workflow triggers automatically
 
