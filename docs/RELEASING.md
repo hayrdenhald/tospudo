@@ -2,16 +2,32 @@
 
 ## Steps
 
-1. Make sure all work is merged and you are on `main`
-2. Bump the version and create a git tag:
+1. Make sure all work is merged, then update `main` and create a release branch:
 
    ```bash
-   pnpm version patch   # or minor / major
-   git push --follow-tags
+   git switch main
+   git pull --ff-only
+   git switch -c release/vX.Y.Z
    ```
 
-   `--follow-tags` pushes both the commit and the tag created by `pnpm version`. Without it the tag stays local and GitHub won't see it.
-3. Create a new release on GitHub pointing to the tag — the publish workflow triggers automatically
+2. Bump the version without creating a commit or tag:
+
+   ```bash
+   pnpm version patch --no-git-tag-version   # or minor / major
+   ```
+
+3. Commit the version change, push the branch, and open a pull request, and merge it.
+4. Update local `main` to the merged commit and create and push the release tag:
+
+   ```bash
+   git switch main
+   git pull --ff-only
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
+   ```
+
+   Push only the new tag; avoid `--follow-tags`, which can also attempt to push unrelated local tags.
+5. Create a new GitHub release using the pushed tag. The publish workflow triggers automatically.
 
 The workflow runs tests, builds the package, and publishes to npm using OIDC authentication.
 
